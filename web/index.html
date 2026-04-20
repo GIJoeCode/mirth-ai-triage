@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirth AI Triage Copilot</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #58a6ff;
+  }
+
+  header span {
+    font-size: 12px;
+    color: #8b949e;
+    background: #21262d;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+  }
+
+  .tabs {
+    display: flex;
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 0 24px;
+  }
+
+  .tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #8b949e;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .tab:hover { color: #e6edf3; }
+
+  .tab.active {
+    color: #58a6ff;
+    border-bottom-color: #58a6ff;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .input-section {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .input-section label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 12px;
+    resize: vertical;
+    min-height: 160px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus { border-color: #58a6ff; }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+  }
+
+  button.primary {
+    background: #238636;
+    border: 1px solid #2ea043;
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button.primary:hover { background: #2ea043; }
+  button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  button.secondary {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  button.secondary:hover { border-color: #58a6ff; color: #58a6ff; }
+
+  .spinner {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    color: #8b949e;
+    font-size: 13px;
+  }
+
+  .spinner.visible { display: flex; }
+
+  .spinner-ring {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #30363d;
+    border-top-color: #58a6ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .result-section {
+    display: none;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .result-section.visible { display: block; }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #30363d;
+    background: #21262d;
+  }
+
+  .result-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e6edf3;
+  }
+
+  .severity-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+
+  .severity-low { background: #1a4731; color: #3fb950; border: 1px solid #2ea043; }
+  .severity-medium { background: #3d2b00; color: #e3b341; border: 1px solid #bb8009; }
+  .severity-high { background: #4d1a1a; color: #f85149; border: 1px solid #da3633; }
+
+  .result-body { padding: 16px; }
+
+  .summary-text {
+    font-size: 14px;
+    color: #e6edf3;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: #0d1117;
+    border-radius: 6px;
+    border-left: 3px solid #58a6ff;
+  }
+
+  .issues-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .issue-card {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .issue-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .issue-header:hover { background: #161b22; }
+
+  .issue-type-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #4d1a1a;
+    color: #f85149;
+    border: 1px solid #da3633;
+    text-transform: uppercase;
+  }
+
+  .issue-field {
+    font-family: monospace;
+    font-size: 13px;
+    color: #ffa657;
+    font-weight: 600;
+  }
+
+  .issue-desc {
+    font-size: 13px;
+    color: #8b949e;
+    flex: 1;
+  }
+
+  .issue-expand { color: #8b949e; font-size: 11px; margin-left: auto; }
+
+  .issue-body {
+    display: none;
+    padding: 12px;
+    border-top: 1px solid #30363d;
+    gap: 10px;
+    flex-direction: column;
+  }
+
+  .issue-body.open { display: flex; }
+
+  .detail-row { display: flex; flex-direction: column; gap: 4px; }
+
+  .detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .detail-value {
+    font-size: 13px;
+    color: #e6edf3;
+  }
+
+  .code-block {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #79c0ff;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .hipaa-badge {
+    font-size: 11px;
+    background: #3d2b00;
+    color: #e3b341;
+    border: 1px solid #bb8009;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  .fix-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #30363d;
+  }
+
+  .fix-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #3fb950;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .copy-btn {
+    font-size: 11px;
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: auto;
+  }
+
+  .copy-btn:hover { color: #58a6ff; border-color: #58a6ff; }
+
+  .json-toggle {
+    margin-top: 12px;
+  }
+
+  .json-raw {
+    display: none;
+    margin-top: 8px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 12px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #8b949e;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .json-raw.open { display: block; }
+
+  .error-banner {
+    background: #4d1a1a;
+    border: 1px solid #da3633;
+    border-radius: 6px;
+    padding: 12px;
+    color: #f85149;
+    font-size: 13px;
+    display: none;
+  }
+
+  .error-banner.visible { display: block; }
+
+  .sample-btn {
+    font-size: 12px;
+    color: #58a6ff;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  .sample-btn:hover { color: #79c0ff; }
+
+  .cluster-card {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .cluster-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .cluster-type {
+    font-size: 13px;
+    font-weight: 700;
+    color: #58a6ff;
+    font-family: monospace;
+  }
+
+  .cluster-count {
+    font-size: 12px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #8b949e;
+  }
+
+  .batch-add-btn {
+    background: transparent;
+    border: 1px dashed #30363d;
+    color: #8b949e;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .batch-add-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+
+  .batch-messages { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+  .batch-msg-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .batch-msg-row textarea { min-height: 80px; flex: 1; }
+
+  .remove-btn {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .remove-btn:hover { border-color: #f85149; color: #f85149; }
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#58a6ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <h1>Mirth AI Triage Copilot</h1>
+  <span>MVP Demo</span>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('hl7')">HL7 Triage</div>
+  <div class="tab" onclick="switchTab('mirth')">Mirth Analyzer</div>
+  <div class="tab" onclick="switchTab('batch')">Batch Clustering</div>
+</div>
+
+<div class="container">
+
+  <!-- HL7 TRIAGE TAB -->
+  <div id="panel-hl7" class="panel active">
+    <div class="input-section">
+      <label>Raw HL7 2.x Message
+        <button class="sample-btn" onclick="loadSample('hl7-broken')" style="margin-left: 12px;">Load broken ORU sample</button>
+        <button class="sample-btn" onclick="loadSample('hl7-obx')" style="margin-left: 8px;">Load malformed OBX sample</button>
+      </label>
+      <textarea id="hl7-input" placeholder="Paste raw HL7 message here...&#10;&#10;MSH|^~\&|LAB_SYSTEM|HOSPITAL|EHR|APP|20260417||ORU^R01|..."></textarea>
+      <div class="controls">
+        <button class="primary" onclick="analyzeHL7()" id="hl7-btn">Analyze Message</button>
+        <button class="secondary" onclick="clearHL7()">Clear</button>
+        <div class="spinner" id="hl7-spinner">
+          <div class="spinner-ring"></div>
+          Analyzing with Claude...
+        </div>
+      </div>
+    </div>
+    <div class="error-banner" id="hl7-error"></div>
+    <div class="result-section" id="hl7-result"></div>
+  </div>
+
+  <!-- MIRTH ANALYZER TAB -->
+  <div id="panel-mirth" class="panel">
+    <div class="input-section">
+      <label>Mirth Connect Error Log or Channel Export
+        <button class="sample-btn" onclick="loadSample('mirth-error')" style="margin-left: 12px;">Load sample error log</button>
+      </label>
+      <textarea id="mirth-input" placeholder="Paste Mirth Connect error log, stack trace, or channel XML export here..."></textarea>
+      <div class="controls">
+        <button class="primary" onclick="analyzeMirth()" id="mirth-btn">Analyze Error</button>
+        <button class="secondary" onclick="clearMirth()">Clear</button>
+        <div class="spinner" id="mirth-spinner">
+          <div class="spinner-ring"></div>
+          Analyzing with Claude...
+        </div>
+      </div>
+    </div>
+    <div class="error-banner" id="mirth-error"></div>
+    <div class="result-section" id="mirth-result"></div>
+  </div>
+
+  <!-- BATCH CLUSTERING TAB -->
+  <div id="panel-batch" class="panel">
+    <div class="input-section">
+      <label>Batch HL7 Messages (up to 50)</label>
+      <div class="batch-messages" id="batch-messages">
+        <div class="batch-msg-row">
+          <textarea placeholder="Paste HL7 message 1..."></textarea>
+          <button class="remove-btn" onclick="removeBatchMsg(this)">×</button>
+        </div>
+      </div>
+      <button class="batch-add-btn" onclick="addBatchMsg()">+ Add another message</button>
+      <div class="controls" style="margin-top:12px;">
+        <button class="primary" onclick="analyzeBatch()" id="batch-btn">Cluster & Analyze</button>
+        <button class="secondary" onclick="loadBatchSamples()">Load sample batch</button>
+        <div class="spinner" id="batch-spinner">
+          <div class="spinner-ring"></div>
+          Analyzing batch...
+        </div>
+      </div>
+    </div>
+    <div class="error-banner" id="batch-error"></div>
+    <div class="result-section" id="batch-result"></div>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = "http://localhost:8001";
+
+// Sample data
+const SAMPLES = {
+  "hl7-broken": `MSH|^~\\&|LAB_SYSTEM|GENERAL_HOSPITAL|EHR_SYSTEM|RECEIVING_APP|20260417083000||ORU^R01|MSG20260417001|P|2.4|||NE|NE
+PID|1||123456789^^^HOSPITAL^MR||DOE^JOHN^A||19800115|M|||123 MAIN ST^^SPRINGFIELD^IL^62701||555-867-5309|||M||987654321^^^HOSPITAL^AN
+ORC|RE|ORD20260417001|LAB20260417001||CM||||20260417080000|||DR_SMITH^SMITH^JAMES
+OBR|1|ORD20260417001|LAB20260417001|85025^COMPLETE BLOOD COUNT^LN|||20260417080000|||||||||DR_SMITH^SMITH^JAMES||||||||F`,
+
+  "hl7-obx": `MSH|^~\\&|LAB_SYSTEM|GENERAL_HOSPITAL|EHR_SYSTEM|RECEIVING_APP|20260417083000||ORU^R01|MSG20260417002|P|2.4|||NE|NE
+PID|1||234567890^^^HOSPITAL^MR||SMITH^JANE^B||19750322|F|||456 OAK AVE^^CHICAGO^IL^60601||555-234-5678|||M||876543210^^^HOSPITAL^AN
+ORC|RE|ORD20260417002|LAB20260417002||CM||||20260417080000|||DR_JONES^JONES^SARAH
+OBR|1|ORD20260417002|LAB20260417002|2093-3^CHOLESTEROL^LN|||20260417080000|||||||||DR_JONES^JONES^SARAH||||||||F
+OBX|1||^^||185|mg/dL|<200||||F|||20260417082000`,
+
+  "mirth-error": `[2026-04-17 08:23:14,445] ERROR (Thread-42): Error occurred in channel: LAB_RESULTS_INBOUND (Channel ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890)
+com.mirth.connect.server.MirthJavascriptTransformerException: Error running transformer: Destination 1 - EHR_WRITER
+  Message: Transformer error at line 47
+  Caused by: org.mozilla.javascript.EcmaError: TypeError: Cannot read property "0" from undefined (lab_results_transformer.js#47)
+	at org.mozilla.javascript.Interpreter.interpretLoop(Interpreter.java:1247)
+
+Script context:
+--- lab_results_transformer.js ---
+41: var patientId = msg['PID']['PID.3']['PID.3.1'].toString();
+46: // Get OBX result value
+47: var resultValue = msg['OBX']['OBX.5']['OBX.5.1'].toString();
+48: var resultUnits = msg['OBX']['OBX.6']['OBX.6.1'].toString();
+---
+
+[2026-04-17 08:23:14,447] INFO: Channel LAB_RESULTS_INBOUND has 847 messages in Error queue
+[2026-04-17 08:23:14,448] WARN: Destination EHR_WRITER has been paused due to consecutive errors`
+};
+
+// Tab switching
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['hl7','mirth','batch'][i] === tab);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// Sample loading
+function loadSample(key) {
+  if (key === 'hl7-broken' || key === 'hl7-obx') {
+    document.getElementById('hl7-input').value = SAMPLES[key];
+  } else if (key === 'mirth-error') {
+    document.getElementById('mirth-input').value = SAMPLES[key];
+  }
+}
+
+// Clear functions
+function clearHL7() {
+  document.getElementById('hl7-input').value = '';
+  hideResult('hl7');
+}
+
+function clearMirth() {
+  document.getElementById('mirth-input').value = '';
+  hideResult('mirth');
+}
+
+function hideResult(type) {
+  document.getElementById(`${type}-result`).classList.remove('visible');
+  document.getElementById(`${type}-error`).classList.remove('visible');
+}
+
+// Severity helpers
+function getSeverityClass(score) {
+  if (score <= 3) return 'severity-low';
+  if (score <= 6) return 'severity-medium';
+  return 'severity-high';
+}
+
+function getSeverityLabel(score) {
+  if (score <= 3) return `Score ${score}/10 — Low`;
+  if (score <= 6) return `Score ${score}/10 — Medium`;
+  return `Score ${score}/10 — High`;
+}
+
+// ── HL7 Analysis ──────────────────────────────────────────────────────────
+
+async function analyzeHL7() {
+  const content = document.getElementById('hl7-input').value.trim();
+  if (!content) { showError('hl7', 'Please paste an HL7 message first.'); return; }
+
+  setLoading('hl7', true);
+  hideResult('hl7');
+
+  try {
+    const res = await fetch(`${API_BASE}/analyze/hl7`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({content, input_type: 'hl7'})
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'API error');
+    }
+
+    const data = await res.json();
+    renderHL7Result(data);
+  } catch (e) {
+    showError('hl7', `Error: ${e.message}`);
+  } finally {
+    setLoading('hl7', false);
+  }
+}
+
+function renderHL7Result(data) {
+  const el = document.getElementById('hl7-result');
+  const score = data.severity_score || 0;
+  const issues = data.issues || [];
+
+  const issueHTML = issues.map((iss, i) => `
+    <div class="issue-card">
+      <div class="issue-header" onclick="toggleIssue('hl7-iss-${i}')">
+        <span class="issue-type-badge">${iss.type || 'issue'}</span>
+        <span class="issue-field">${iss.field || iss.segment || ''}</span>
+        <span class="issue-desc">${iss.description || ''}</span>
+        ${iss.hipaa_sensitive ? '<span class="hipaa-badge">⚠ HIPAA</span>' : ''}
+        <span class="issue-expand" id="hl7-iss-${i}-arrow">▼</span>
+      </div>
+      <div class="issue-body" id="hl7-iss-${i}">
+        <div class="detail-row">
+          <span class="detail-label">Why it breaks downstream</span>
+          <span class="detail-value">${iss.why_it_breaks || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Suggested Fix</span>
+          <div class="code-block">${escHtml(iss.suggested_fix || '')}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  const fixes = data.fix_snippets || {};
+
+  el.innerHTML = `
+    <div class="result-header">
+      <span class="result-title">HL7 Triage Report — ${data.message_type || 'Unknown type'} — ${issues.length} issue${issues.length !== 1 ? 's' : ''} found</span>
+      <span class="severity-badge ${getSeverityClass(score)}">${getSeverityLabel(score)}</span>
+    </div>
+    <div class="result-body">
+      <div class="summary-text">${data.summary || ''}</div>
+      <div class="issues-list">${issueHTML || '<p style="color:#8b949e;font-size:13px;">No issues detected — message appears valid.</p>'}</div>
+      ${fixes.hl7_patch || fixes.mirth_js ? `
+        <div class="fix-section">
+          <div class="fix-title">
+            ✓ Suggested Fixes
+            <button class="copy-btn" onclick="copyFix('hl7-fix-code')">Copy</button>
+          </div>
+          ${fixes.hl7_patch ? `<div class="detail-label" style="margin-bottom:4px;">HL7 Patch</div><div class="code-block" id="hl7-fix-code">${escHtml(fixes.hl7_patch)}</div>` : ''}
+          ${fixes.mirth_js ? `<div class="detail-label" style="margin:10px 0 4px;">Mirth JavaScript Fix</div><div class="code-block">${escHtml(fixes.mirth_js)}</div>` : ''}
+        </div>
+      ` : ''}
+      <div class="json-toggle">
+        <button class="secondary" style="font-size:12px;" onclick="toggleJSON('hl7-json')">Show Raw JSON</button>
+        <div class="json-raw" id="hl7-json">${escHtml(JSON.stringify(data, null, 2))}</div>
+      </div>
+    </div>
+  `;
+
+  el.classList.add('visible');
+}
+
+// ── Mirth Analysis ────────────────────────────────────────────────────────
+
+async function analyzeMirth() {
+  const content = document.getElementById('mirth-input').value.trim();
+  if (!content) { showError('mirth', 'Please paste a Mirth error log first.'); return; }
+
+  setLoading('mirth', true);
+  hideResult('mirth');
+
+  try {
+    const res = await fetch(`${API_BASE}/analyze/mirth`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({content, input_type: 'mirth'})
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'API error');
+    }
+
+    const data = await res.json();
+    renderMirthResult(data);
+  } catch (e) {
+    showError('mirth', `Error: ${e.message}`);
+  } finally {
+    setLoading('mirth', false);
+  }
+}
+
+function renderMirthResult(data) {
+  const el = document.getElementById('mirth-result');
+  const score = data.severity_score || 0;
+  const rc = data.root_cause || {};
+  const fix = data.fix || {};
+  const hyps = data.hypotheses || [];
+
+  const hypHTML = hyps.length > 1 ? `
+    <div class="detail-row" style="margin-top:12px;">
+      <span class="detail-label">Alternate Hypotheses</span>
+      ${hyps.slice(1).map(h => `
+        <div style="background:#0d1117;border:1px solid #30363d;border-radius:4px;padding:8px;margin-top:6px;">
+          <span style="color:#58a6ff;font-size:12px;">${Math.round(h.confidence * 100)}% confidence</span>
+          <p style="font-size:13px;color:#e6edf3;margin-top:4px;">${h.explanation}</p>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  el.innerHTML = `
+    <div class="result-header">
+      <span class="result-title">Mirth Triage — ${data.channel_name || 'Unknown channel'} — Est. ${data.estimated_fix_minutes || '?'} min fix</span>
+      <span class="severity-badge ${getSeverityClass(score)}">${getSeverityLabel(score)}</span>
+    </div>
+    <div class="result-body">
+      <div class="summary-text">${data.summary || ''}</div>
+      ${data.messages_affected > 0 ? `<p style="font-size:13px;color:#e3b341;margin-bottom:12px;">⚠ ${data.messages_affected} messages currently in error queue</p>` : ''}
+
+      <div class="detail-row" style="margin-bottom:12px;">
+        <span class="detail-label">Root Cause</span>
+        <span class="detail-value">${rc.explanation || ''}</span>
+        ${rc.line_hint ? `<span style="font-size:12px;color:#8b949e;font-family:monospace;">Line ${rc.line_hint} in ${rc.component_name || 'transformer'}</span>` : ''}
+      </div>
+
+      ${hypHTML}
+
+      ${fix.fixed_code ? `
+        <div class="fix-section">
+          <div class="fix-title">
+            ✓ JavaScript Fix — paste into ${fix.transformer_name || 'transformer'} step ${fix.step || ''}
+            <button class="copy-btn" onclick="copyText(${JSON.stringify(fix.fixed_code)})">Copy</button>
+          </div>
+          ${fix.original_code ? `<div class="detail-label" style="margin-bottom:4px;">Original (broken)</div><div class="code-block" style="border-color:#da3633;">${escHtml(fix.original_code)}</div>` : ''}
+          <div class="detail-label" style="margin:10px 0 4px;">Fixed Code</div>
+          <div class="code-block" style="border-color:#2ea043;">${escHtml(fix.fixed_code)}</div>
+          <p style="font-size:12px;color:#8b949e;margin-top:6px;">${fix.explanation || ''}</p>
+        </div>
+      ` : ''}
+
+      ${data.prevention ? `
+        <div style="margin-top:12px;padding:10px;background:#0d1117;border-radius:6px;border-left:3px solid #238636;">
+          <span class="detail-label">Prevention</span>
+          <p style="font-size:13px;color:#e6edf3;margin-top:4px;">${data.prevention}</p>
+        </div>
+      ` : ''}
+
+      <div class="json-toggle" style="margin-top:12px;">
+        <button class="secondary" style="font-size:12px;" onclick="toggleJSON('mirth-json')">Show Raw JSON</button>
+        <div class="json-raw" id="mirth-json">${escHtml(JSON.stringify(data, null, 2))}</div>
+      </div>
+    </div>
+  `;
+
+  el.classList.add('visible');
+}
+
+// ── Batch Analysis ────────────────────────────────────────────────────────
+
+function addBatchMsg() {
+  const container = document.getElementById('batch-messages');
+  const row = document.createElement('div');
+  row.className = 'batch-msg-row';
+  row.innerHTML = `<textarea placeholder="Paste HL7 message..."></textarea><button class="remove-btn" onclick="removeBatchMsg(this)">×</button>`;
+  container.appendChild(row);
+}
+
+function removeBatchMsg(btn) {
+  const rows = document.querySelectorAll('.batch-msg-row');
+  if (rows.length > 1) btn.parentElement.remove();
+}
+
+function loadBatchSamples() {
+  const container = document.getElementById('batch-messages');
+  container.innerHTML = '';
+  [SAMPLES['hl7-broken'], SAMPLES['hl7-obx'], SAMPLES['hl7-broken'], SAMPLES['hl7-obx'], SAMPLES['hl7-broken']].forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'batch-msg-row';
+    row.innerHTML = `<textarea></textarea><button class="remove-btn" onclick="removeBatchMsg(this)">×</button>`;
+    container.appendChild(row);
+    row.querySelector('textarea').value = s;
+  });
+}
+
+async function analyzeBatch() {
+  const textareas = document.querySelectorAll('#batch-messages textarea');
+  const messages = Array.from(textareas).map(t => t.value.trim()).filter(Boolean);
+
+  if (messages.length === 0) { showError('batch', 'Please add at least one HL7 message.'); return; }
+
+  setLoading('batch', true);
+  hideResult('batch');
+
+  try {
+    const res = await fetch(`${API_BASE}/analyze/batch`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({messages})
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'API error');
+    }
+
+    const data = await res.json();
+    renderBatchResult(data);
+  } catch (e) {
+    showError('batch', `Error: ${e.message}`);
+  } finally {
+    setLoading('batch', false);
+  }
+}
+
+function renderBatchResult(data) {
+  const el = document.getElementById('batch-result');
+  const clusters = data.clusters || [];
+
+  const clusterHTML = clusters.map((c, i) => `
+    <div class="cluster-card">
+      <div class="cluster-header">
+        <span style="color:#8b949e;font-size:12px;">#${i+1}</span>
+        <span class="cluster-type">${c.cluster_type}</span>
+        <span class="cluster-count">${c.count} message${c.count !== 1 ? 's' : ''}</span>
+        <span class="severity-badge ${getSeverityClass(c.severity_avg)}" style="font-size:11px;">Avg severity ${c.severity_avg}</span>
+      </div>
+      ${c.representative_issue ? `
+        <p style="font-size:13px;color:#e6edf3;margin-bottom:6px;">${c.representative_issue.description || ''}</p>
+        ${c.representative_issue.suggested_fix ? `<div class="code-block" style="font-size:11px;">${escHtml(c.representative_issue.suggested_fix)}</div>` : ''}
+      ` : ''}
+      <p style="font-size:12px;color:#8b949e;margin-top:6px;">Affected message indices: ${c.messages.join(', ')}</p>
+    </div>
+  `).join('');
+
+  el.innerHTML = `
+    <div class="result-header">
+      <span class="result-title">Batch Analysis — ${data.total_messages} messages — ${data.cluster_count} failure pattern${data.cluster_count !== 1 ? 's' : ''}</span>
+      <span class="severity-badge severity-medium">${data.total_issues_found} total issues</span>
+    </div>
+    <div class="result-body">
+      <div class="summary-text">${data.summary || ''}</div>
+      ${clusterHTML || '<p style="color:#8b949e;font-size:13px;">No clusterable failures found.</p>'}
+      <div class="json-toggle" style="margin-top:12px;">
+        <button class="secondary" style="font-size:12px;" onclick="toggleJSON('batch-json')">Show Raw JSON</button>
+        <div class="json-raw" id="batch-json">${escHtml(JSON.stringify(data, null, 2))}</div>
+      </div>
+    </div>
+  `;
+
+  el.classList.add('visible');
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────
+
+function setLoading(type, loading) {
+  document.getElementById(`${type}-btn`).disabled = loading;
+  document.getElementById(`${type}-spinner`).classList.toggle('visible', loading);
+}
+
+function showError(type, msg) {
+  const el = document.getElementById(`${type}-error`);
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function toggleIssue(id) {
+  const body = document.getElementById(id);
+  const arrow = document.getElementById(`${id}-arrow`);
+  const open = body.classList.toggle('open');
+  if (arrow) arrow.textContent = open ? '▲' : '▼';
+}
+
+function toggleJSON(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+function copyFix(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text);
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

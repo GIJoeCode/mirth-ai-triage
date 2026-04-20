@@ -1,0 +1,25 @@
+[2026-04-17 08:23:14,445] ERROR (Thread-42): Error occurred in channel: LAB_RESULTS_INBOUND (Channel ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890)
+com.mirth.connect.server.MirthJavascriptTransformerException: Error running transformer: Destination 1 - EHR_WRITER
+  Message: Transformer error at line 47
+  Caused by: org.mozilla.javascript.EcmaError: TypeError: Cannot read property "0" from undefined (lab_results_transformer.js#47)
+	at org.mozilla.javascript.Interpreter.interpretLoop(Interpreter.java:1247)
+	at org.mozilla.javascript.Interpreter.interpret(Interpreter.java:813)
+	at org.mozilla.javascript.InterpretedFunction.call(InterpretedFunction.java:164)
+	at com.mirth.connect.server.transformers.JavaScriptTransformer.doTransform(JavaScriptTransformer.java:203)
+
+Script context:
+--- lab_results_transformer.js ---
+41: var patientId = msg['PID']['PID.3']['PID.3.1'].toString();
+42: var lastName = msg['PID']['PID.5']['PID.5.1'].toString();
+43: var firstName = msg['PID']['PID.5']['PID.5.2'].toString();
+44: var dob = msg['PID']['PID.7']['PID.7.1'].toString();
+45:
+46: // Get OBX result value
+47: var resultValue = msg['OBX']['OBX.5']['OBX.5.1'].toString();
+48: var resultUnits = msg['OBX']['OBX.6']['OBX.6.1'].toString();
+49: var resultStatus = msg['OBX']['OBX.11'].toString();
+---
+
+[2026-04-17 08:23:14,446] ERROR: Message ID 20260417-8823-LAB moved to Error queue
+[2026-04-17 08:23:14,447] INFO: Channel LAB_RESULTS_INBOUND has 847 messages in Error queue
+[2026-04-17 08:23:14,448] WARN: Destination EHR_WRITER has been paused due to consecutive errors (threshold: 5)
