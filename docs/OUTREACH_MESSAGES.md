@@ -37,9 +37,7 @@ Variant if they posted recently about HL7/integration pain:
 > samples, human-in-the-loop. Walkthrough: [link]. Worth a 20-min
 > call to compare notes?
 
-## 2. Cold email — to an integration lead at a hospital, health system, or vendor
-
-Subject: `Mirth/HL7 triage workflow — 4-min look`
+## 2. LinkedIn message — to an integration lead at a hospital, health system, or vendor
 
 > Hi [Name],
 >
@@ -57,17 +55,14 @@ Subject: `Mirth/HL7 triage workflow — 4-min look`
 >
 > If your team spends meaningful time triaging interface errors, I'm
 > running a fixed-scope audit using this workflow against redacted
-> samples teams send me. Five to seven business days. Walkthrough
-> call included. Offer sheet is in the repo at `docs/OFFER_SHEET.md`.
+> samples teams send me. $2,500, 5 business days, walkthrough call
+> included. Offer sheet is in the repo at `docs/OFFER_SHEET.md`.
 >
 > Worth 20 minutes to see if it maps to what you're seeing?
 >
 > — [your name]
-> [your phone or scheduling link]
 
 ## 3. Follow-up (7–10 days later, only once)
-
-Subject: `Re: Mirth/HL7 triage workflow — 4-min look`
 
 > Hi [Name] — bumping this in case it got buried. No pressure either
 > way; if it's not a fit, a one-word reply ("not now" / "not a fit")
@@ -89,10 +84,10 @@ That's the whole follow-up. Resist the urge to add anything.
 ## 5. Referral ask — to a peer who isn't the buyer but knows the buyer
 
 > Hi [Name] — quick ask. I'm doing fixed-scope HL7/Mirth triage
-> audits for integration teams. Synthetic-data, human-in-the-loop,
-> short engagement. Anyone in your network worth introducing? Happy
-> to share the offer sheet first so you can vet it before passing
-> it on. — [your name]
+> audits for integration teams. $2,500, 5 business days, synthetic-
+> data only, human-in-the-loop. Anyone in your network worth
+> introducing? Happy to share the offer sheet first so you can vet
+> it before passing it on. — [your name]
 
 ## 6. Reply to "what makes you different from [tool X]"
 

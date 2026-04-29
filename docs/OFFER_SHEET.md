@@ -5,9 +5,6 @@ Mirth Connect (or a comparable HL7 v2 interface engine). The deliverable
 is a written triage workflow review and a prioritized improvement list
 your team can act on the same week.
 
-> Replace the bracketed placeholders below with your final numbers
-> before you publish or send this sheet to a buyer.
-
 ---
 
 ## Who this is for
@@ -63,17 +60,22 @@ and answer questions.
 
 ## Timeline
 
-- **Intake to delivery:** [5–7 business days] for the standard scope.
-- **Walkthrough call:** scheduled within [3 business days] of delivery.
-- **Follow-up window:** [14 days] from delivery.
+- **Standard audit — intake to delivery:** 5 business days from
+  receipt of redacted samples.
+- **Extended audit — intake to delivery:** 7–10 business days from
+  receipt of redacted samples, depending on scope.
+- **Walkthrough call:** scheduled within 3 business days of delivery.
+- **Follow-up window:** 14 days from delivery.
 
 ## Pricing
 
-- **Standard audit:** $[1,500–3,500]
+- **Standard audit:** **$2,500** flat fee.
 - **Extended audit** (more sample volume, more interfaces, additional
-  workflow review): $[3,500–7,500]
+  workflow review): **$5,000+**, with the final number confirmed in
+  writing after the intake call.
 
-Final price is confirmed in writing after the intake call. No surprises.
+50% deposit at engagement, 50% at delivery. Both tiers are
+fixed-scope and fixed-fee. No surprise hourly add-ons.
 
 ## What is explicitly out of scope
 
@@ -96,10 +98,13 @@ Final price is confirmed in writing after the intake call. No surprises.
 
 ## How to start
 
-Email **[your_email_here]** with a short note about your environment
-(engine, message volume, top pain point) and I'll send back available
-intake slots and the redaction checklist.
+Open an issue on this repository
+(<https://github.com/GIJoeCode/mirth-ai-triage/issues>) titled
+"Audit inquiry — *your team or company description*" with a short
+note about your environment (engine, message volume, top pain
+point). I'll reply with available intake slots and the redaction
+checklist. If you'd rather reach out via LinkedIn, that works too.
 
 ---
 
-*Last updated: [DATE]*
+*Last updated: April 28, 2026.*

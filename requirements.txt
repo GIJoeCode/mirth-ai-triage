@@ -1,5 +1,11 @@
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-anthropic==0.34.2
-python-multipart==0.0.9
-pydantic==2.8.2
+# mirth-ai-triage — Python dependencies
+#
+# Tested with Python 3.11 and 3.12 on Windows 11 and Linux.
+# Minimum-version pins keep the prototype reproducible without
+# locking us to a single point release.
+
+fastapi>=0.110
+uvicorn[standard]>=0.27
+anthropic>=0.25
+python-multipart>=0.0.6
+python-dotenv>=1.0

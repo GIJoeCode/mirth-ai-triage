@@ -76,45 +76,53 @@ The full policy is in
 - Every synthetic file carries the literal marker
   `SYNTHETIC_DEMO_DATA` near the top.
 
-## Demo workflow
-
-The demo (in `mvp_demo/main.py`) takes synthetic input from
-`samples/` and walks through:
-
-1. Read the synthetic HL7 message and/or synthetic Mirth log.
-2. Run structural and clustering analysis.
-3. Call the model with the templates in `prompts/` to produce
-   ranked hypotheses, severity, validation steps, and a checklist.
-4. Print the results to stdout for a human reviewer.
-
-```text
-samples/  ─►  mvp_demo/main.py  ─►  hypotheses + checklist
-                  ▲                      │
-                  │                      ▼
-              prompts/            human review
-```
-
 ## Setup
 
+**Requirements:** Python 3.11+ and an Anthropic API key
+(get one at https://console.anthropic.com/).
+
 ```bash
-# 1. Create and activate a virtual environment
+# 1. Clone the repo and change into it
+git clone https://github.com/GIJoeCode/mirth-ai-triage.git
+cd mirth-ai-triage
+
+# 2. Create and activate a virtual environment
 python -m venv .venv
+
 # Windows PowerShell:
 .\.venv\Scripts\Activate.ps1
+
 # macOS / Linux:
 source .venv/bin/activate
 
-# 2. Install dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 3. Copy the env example and add your key locally
+# 4. Copy the env example and add your key locally
+# Windows PowerShell:
+copy .env.example .env
+# macOS / Linux:
 cp .env.example .env
-# then edit .env and set ANTHROPIC_API_KEY=<your key>
-# do NOT commit .env
 
-# 4. Run the demo against the synthetic samples
-python mvp_demo/main.py
+# Then edit .env and set ANTHROPIC_API_KEY=<your key>.
+# Do NOT commit .env. The .gitignore already excludes it.
 ```
+
+## Running the demo
+
+The demo is a small FastAPI backend that serves a single-page web
+UI. Start the backend, then open the page in a browser.
+
+```bash
+# From the repo root, with the venv activated
+cd mvp_demo
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+```
+
+Then open <http://localhost:8001> in your browser.
+
+The UI loads the synthetic samples from `samples/` so you can walk
+through the triage workflow without supplying any data of your own.
 
 ## QA / public-safety check
 
@@ -150,14 +158,17 @@ teams.
 The full offer is in
 [`docs/OFFER_SHEET.md`](docs/OFFER_SHEET.md). In short:
 
+- **Standard audit:** $2,500 fixed fee, 5 business days after receipt
+  of redacted samples.
+- **Extended audit:** $5,000+ depending on scope, 7–10 business
+  days. Final price confirmed in writing after intake.
 - You send a handful of redacted HL7 messages and Mirth log
   excerpts. (PHI removed by you, with a redaction checklist I
   provide.)
-- I run the audit using the workflow in this repo.
-- You get a triage workflow review, a root-cause taxonomy of your
-  top failure classes, a remediation playbook outline, a
-  human-review checklist, and a 45-minute walkthrough call.
-- Five to seven business days, fixed fee.
+- I run the audit using the workflow in this repo and deliver a
+  triage workflow review, a root-cause taxonomy of your top failure
+  classes, a remediation playbook outline, a human-review checklist,
+  and a 45-minute walkthrough call.
 
 I never receive PHI. I do not touch your production systems. The
 deliverable is a workflow artifact your team owns.
@@ -195,7 +206,7 @@ mirth-ai-triage/
 ├── requirements.txt                Python dependencies
 ├── .env.example                    environment-variable template
 ├── mvp_demo/
-│   └── main.py                     demo entry point
+│   └── main.py                     FastAPI backend entry point
 ├── prompts/
 │   ├── hl7_triage_prompt.txt       prompt template for HL7 triage
 │   └── mirth_analyzer_prompt.txt   prompt template for log analysis
@@ -213,13 +224,13 @@ mirth-ai-triage/
 │   ├── QA_CHECKLIST.md             pre-publish review checklist
 │   └── demo_data_policy.md         synthetic-data-only policy
 └── web/
-    └── index.html                  static landing page (optional)
+    └── index.html                  single-page UI served by the backend
 ```
 
 ## Contact
 
-For audit inquiries: **your_email_here@example.com** (replace before
-publishing).
+For audit inquiries, contact the repository owner through GitHub
+(open an issue on this repository) or via LinkedIn.
 
 ## License
 
