@@ -471,7 +471,7 @@
         <button class="sample-btn" onclick="loadSample('hl7-broken')" style="margin-left: 12px;">Load broken ORU sample</button>
         <button class="sample-btn" onclick="loadSample('hl7-obx')" style="margin-left: 8px;">Load malformed OBX sample</button>
       </label>
-      <textarea id="hl7-input" placeholder="Paste raw HL7 message here...&#10;&#10;MSH|^~\&|LAB_SYSTEM|HOSPITAL|EHR|APP|20260417||ORU^R01|..."></textarea>
+      <textarea id="hl7-input" placeholder="Paste raw HL7 message here...&#10;&#10;MSH|^~\&|DEMO_LIS|HOSPITAL|EHR|APP|20260417||ORU^R01|..."></textarea>
       <div class="controls">
         <button class="primary" onclick="analyzeHL7()" id="hl7-btn">Analyze Message</button>
         <button class="secondary" onclick="clearHL7()">Clear</button>
@@ -536,19 +536,19 @@ const API_BASE = "http://localhost:8001";
 
 // Sample data
 const SAMPLES = {
-  "hl7-broken": `MSH|^~\\&|LAB_SYSTEM|GENERAL_HOSPITAL|EHR_SYSTEM|RECEIVING_APP|20260417083000||ORU^R01|MSG20260417001|P|2.4|||NE|NE
-PID|1||123456789^^^HOSPITAL^MR||DOE^JOHN^A||19800115|M|||123 MAIN ST^^SPRINGFIELD^IL^62701||555-867-5309|||M||987654321^^^HOSPITAL^AN
-ORC|RE|ORD20260417001|LAB20260417001||CM||||20260417080000|||DR_SMITH^SMITH^JAMES
-OBR|1|ORD20260417001|LAB20260417001|85025^COMPLETE BLOOD COUNT^LN|||20260417080000|||||||||DR_SMITH^SMITH^JAMES||||||||F`,
+  "hl7-broken": `MSH|^~\\&|DEMO_LIS|DEMO_LAB|DEMO_HIS|DEMO_RECEIVER|20260417083000||ORU^R01|MSG20260417001|P|2.4|||NE|NE
+PID|1||DEMO_MRN_001^^^DEMO_FACILITY^MR||SYNTHETIC^DEMO^A||19000101|U|||123 DEMO ST^^DEMO CITY^ZZ^00000||555-0101|||U||DEMO_ACCOUNT_001^^^DEMO_FACILITY^AN
+ORC|RE|ORD20260417001|LAB20260417001||CM||||20260417080000|||DEMO_PROVIDER^SYNTHETIC^A
+OBR|1|ORD20260417001|LAB20260417001|85025^COMPLETE BLOOD COUNT^LN|||20260417080000|||||||||DEMO_PROVIDER^SYNTHETIC^A||||||||F`,
 
-  "hl7-obx": `MSH|^~\\&|LAB_SYSTEM|GENERAL_HOSPITAL|EHR_SYSTEM|RECEIVING_APP|20260417083000||ORU^R01|MSG20260417002|P|2.4|||NE|NE
-PID|1||234567890^^^HOSPITAL^MR||SMITH^JANE^B||19750322|F|||456 OAK AVE^^CHICAGO^IL^60601||555-234-5678|||M||876543210^^^HOSPITAL^AN
-ORC|RE|ORD20260417002|LAB20260417002||CM||||20260417080000|||DR_JONES^JONES^SARAH
-OBR|1|ORD20260417002|LAB20260417002|2093-3^CHOLESTEROL^LN|||20260417080000|||||||||DR_JONES^JONES^SARAH||||||||F
+  "hl7-obx": `MSH|^~\\&|DEMO_LIS|DEMO_LAB|DEMO_HIS|DEMO_RECEIVER|20260417083000||ORU^R01|MSG20260417002|P|2.4|||NE|NE
+PID|1||DEMO_MRN_002^^^DEMO_FACILITY^MR||SYNTHETIC^DEMO^B||19000102|U|||456 DEMO AVE^^DEMO CITY^ZZ^00000||555-0102|||U||DEMO_ACCOUNT_002^^^DEMO_FACILITY^AN
+ORC|RE|ORD20260417002|LAB20260417002||CM||||20260417080000|||DEMO_PROVIDER^SYNTHETIC^B
+OBR|1|ORD20260417002|LAB20260417002|2093-3^CHOLESTEROL^LN|||20260417080000|||||||||DEMO_PROVIDER^SYNTHETIC^B||||||||F
 OBX|1||^^||185|mg/dL|<200||||F|||20260417082000`,
 
-  "mirth-error": `[2026-04-17 08:23:14,445] ERROR (Thread-42): Error occurred in channel: LAB_RESULTS_INBOUND (Channel ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890)
-com.mirth.connect.server.MirthJavascriptTransformerException: Error running transformer: Destination 1 - EHR_WRITER
+  "mirth-error": `[2026-04-17 08:23:14,445] ERROR (Thread-42): Error occurred in channel: DEMO_CHANNEL_INBOUND_ORU (Channel ID: DEMO-CHANNEL-ID-000001)
+com.mirth.connect.server.MirthJavascriptTransformerException: Error running transformer: Destination 1 - DEMO_DESTINATION_WRITER
   Message: Transformer error at line 47
   Caused by: org.mozilla.javascript.EcmaError: TypeError: Cannot read property "0" from undefined (lab_results_transformer.js#47)
 	at org.mozilla.javascript.Interpreter.interpretLoop(Interpreter.java:1247)
@@ -561,8 +561,8 @@ Script context:
 48: var resultUnits = msg['OBX']['OBX.6']['OBX.6.1'].toString();
 ---
 
-[2026-04-17 08:23:14,447] INFO: Channel LAB_RESULTS_INBOUND has 847 messages in Error queue
-[2026-04-17 08:23:14,448] WARN: Destination EHR_WRITER has been paused due to consecutive errors`
+[2026-04-17 08:23:14,447] INFO: Channel DEMO_CHANNEL_INBOUND_ORU has 847 messages in Error queue
+[2026-04-17 08:23:14,448] WARN: Destination DEMO_DESTINATION_WRITER has been paused due to consecutive errors`
 };
 
 // Tab switching
@@ -934,3 +934,4 @@ function escHtml(str) {
 </script>
 </body>
 </html>
+

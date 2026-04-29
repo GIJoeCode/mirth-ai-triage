@@ -1,4 +1,19 @@
-MSH|^~\&|LAB_SYSTEM|GENERAL_HOSPITAL|EHR_SYSTEM|RECEIVING_APP|20260417083000||ORU^R01|MSG20260417001|P|2.4|||NE|NE
-PID|1||123456789^^^HOSPITAL^MR||DOE^JOHN^A||19800115|M|||123 MAIN ST^^SPRINGFIELD^IL^62701||555-867-5309|||M||987654321^^^HOSPITAL^AN
-ORC|RE|ORD20260417001|LAB20260417001||CM||||20260417080000|||DR_SMITH^SMITH^JAMES
-OBR|1|ORD20260417001|LAB20260417001|85025^COMPLETE BLOOD COUNT^LN|||20260417080000|||||||||DR_SMITH^SMITH^JAMES||||||||F
+# SYNTHETIC_DEMO_DATA — this file is a clearly-fictional HL7 v2 ORU^R01
+# message used to exercise the triage workflow. It contains intentional
+# structural defects. Do NOT use this against a real interface.
+#
+# Defects intentionally present:
+#   1. MSH segment is missing the message control ID (MSH-10).
+#   2. PID-7 (date of birth) is malformed (alpha characters in a numeric field).
+#   3. OBR segment is present but missing OBR-4 (universal service identifier).
+#   4. OBX-5 contains an unescaped pipe character that breaks field parsing.
+#   5. Final segment terminator is inconsistent.
+#
+MSH|^~\&|DEMO_LIS|DEMO_LAB|DEMO_HIS|DEMO_HOSPITAL|20260101120000||ORU^R01|||2.5
+PID|1||DEMO000001^^^DEMO_HOSPITAL^MR||SYNTHETIC^DEMO^A||19000101ABC|M|||123 EXAMPLE ST^^DEMOTOWN^XX^00000||(555) 555-0100|||S
+PV1|1|O|DEMOCLINIC^^^DEMO_HOSPITAL||||DEMO_PROVIDER^TEST^A
+ORC|RE|DEMOORDER000001|DEMOFILLER000001||CM
+OBR|1|DEMOORDER000001|DEMOFILLER000001||||20260101120000|||||||20260101120000
+OBX|1|NM|GLU^GLUCOSE^L||95|mg/dL|70-99|N|||F
+OBX|2|TX|NOTE^LAB NOTE^L||value contains | a pipe character|||N|||F
+OBX|3|NM|HGB^HEMOGLOBIN^L||14.2|g/dL|13.0-17.0|N|||F
