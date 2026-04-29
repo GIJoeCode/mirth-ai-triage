@@ -1,123 +1,227 @@
-# Mirth AI Triage Copilot
+# mirth-ai-triage
 
-AI-powered HL7 and Mirth Connect incident triage tool. Cuts interface troubleshooting time from hours to minutes.
+**An AI-assisted healthcare integration triage workflow prototype.**
 
-Built by Joseph Quinn — Healthcare SaaS Integration Engineer with 2+ years production Mirth Connect 3.10+ and HL7 2.x experience.
+A small, opinionated prototype that helps an integration engineer get
+from a raw HL7 message and a Mirth-Connect-style error log to a
+clear, defensible hypothesis faster. It runs on synthetic data only.
+It is human-in-the-loop by design. It does not auto-apply anything.
 
-\---
+> If you are looking for an autonomous fixer or a production-ready
+> SaaS, this is not that. The shape of this project is intentional —
+> see *What this is not* below.
 
-## What it does
+---
 
-**Tab 1 — HL7 Triage**
-Paste any raw HL7 2.x message. Returns field-level breakdown, exact errors, downstream impact, and specific fix in under 60 seconds.
+## What this is
 
-**Tab 2 — Mirth Analyzer**
-Paste a Mirth Connect error log or channel export. Returns root cause, exact transformer/line, copy-paste JavaScript fix, and severity score.
+- A workflow prototype that takes a synthetic HL7 message and/or a
+  synthetic Mirth error log and produces:
+  1. Structural observations (segment-level, with line references).
+  2. A severity rating with reasoning.
+  3. Ranked root-cause hypotheses with the evidence each is based on.
+  4. Validation steps a human can run to confirm or rule out each
+     hypothesis.
+  5. Plain-language remediation suggestions for human review.
+  6. A per-incident human-review checklist.
+- A reference for what a credible AI-assisted integration triage
+  workflow looks like — including the safety model, the synthetic-
+  data policy, and the consulting offer that wraps around it.
 
-**Tab 3 — Batch Clustering**
-Upload up to 50 failed messages. Clusters failures by root cause pattern, shows top issues, and estimates total fix effort.
+## What this is not
 
-\---
+- It is **not** a tool that fixes interface errors automatically.
+- It is **not** approved for use against real PHI or real production
+  logs.
+- It is **not** a replacement for an integration engineer.
+- It is **not** a Mirth Connect plugin or a deployed service. It is
+  a prototype that runs locally on synthetic input.
+- It is **not** certified for HIPAA, HITRUST, SOC 2, or any other
+  compliance regime. The prototype makes no compliance claims.
+
+## Human-in-the-loop safety model
+
+The full safety model is documented in
+[`docs/SAFETY_MODEL.md`](docs/SAFETY_MODEL.md). The short version:
+
+- **The model proposes. A human decides.** Every output is a
+  hypothesis or suggestion paired with the evidence behind it. A
+  human integration engineer reviews and decides what to act on.
+- **No destructive actions.** The system parses, classifies, and
+  generates text. It does not write to Mirth, modify channels,
+  re-route messages, or touch any production system.
+- **Bounded confidence.** Outputs include the model's own
+  uncertainty. Low-confidence outputs are labeled.
+- **Auditable.** Every output is paired with the input, the prompt
+  template, and a timestamp, so reviewers can reconstruct what was
+  asked and what came back.
+- **Reversible by default.** Read-only inputs, text-only outputs.
+
+## Synthetic demo data only
+
+This repository operates under a strict synthetic-data-only policy.
+No PHI, no production logs, no real client/employer/facility data,
+no real patient identifiers, ever, in any file in this repo or any <!-- noqa: safety -->
+artifact derived from it.
+
+The full policy is in
+[`docs/demo_data_policy.md`](docs/demo_data_policy.md). Highlights:
+
+- Names follow obviously-synthetic patterns
+  (`SYNTHETIC^DEMO`, `TEST^PATIENT`). <!-- noqa: safety -->
+- Identifiers use `DEMO`/`SYNTH`/`TEST` prefixes.
+- Phone numbers use the `555-0100`–`555-0199` reserved-fictional
+  range.
+- Email addresses use `example.com` / `example.org`.
+- Every synthetic file carries the literal marker
+  `SYNTHETIC_DEMO_DATA` near the top.
+
+## Demo workflow
+
+The demo (in `mvp_demo/main.py`) takes synthetic input from
+`samples/` and walks through:
+
+1. Read the synthetic HL7 message and/or synthetic Mirth log.
+2. Run structural and clustering analysis.
+3. Call the model with the templates in `prompts/` to produce
+   ranked hypotheses, severity, validation steps, and a checklist.
+4. Print the results to stdout for a human reviewer.
+
+```text
+samples/  ─►  mvp_demo/main.py  ─►  hypotheses + checklist
+                  ▲                      │
+                  │                      ▼
+              prompts/            human review
+```
 
 ## Setup
 
-### Requirements
+```bash
+# 1. Create and activate a virtual environment
+python -m venv .venv
+# Windows PowerShell:
+.\.venv\Scripts\Activate.ps1
+# macOS / Linux:
+source .venv/bin/activate
 
-* Python 3.11+
-* Anthropic API key
+# 2. Install dependencies
+pip install -r requirements.txt
 
-### Install
+# 3. Copy the env example and add your key locally
+cp .env.example .env
+# then edit .env and set ANTHROPIC_API_KEY=<your key>
+# do NOT commit .env
 
-```powershell
-cd D:\\Projects\\mirth-ai-triage
-pip install fastapi uvicorn anthropic python-multipart
+# 4. Run the demo against the synthetic samples
+python mvp_demo/main.py
 ```
 
-### Set API key
+## QA / public-safety check
 
-```powershell
-$env:ANTHROPIC\_API\_KEY = "sk-ant-YOUR-KEY-HERE"
+Run the safety scanner before every commit and before every public
+share. It walks the repo and flags risky strings (real-looking API
+keys, SSN-shaped numbers, real-name denylist entries, non-placeholder <!-- noqa: safety -->
+phone numbers and emails, embedded private keys, etc.).
+
+```bash
+python scripts/check_public_safety.py
 ```
 
-### Run
+Exit codes:
 
-**Terminal 1 — Backend:**
+- **0** — clean, safe to publish.
+- **1** — findings detected. Review and fix before publishing.
+- **2** — script error / bad invocation.
 
-```powershell
-cd D:\\Projects\\mirth-ai-triage\\mvp\_demo
-uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+A `--strict` flag treats warnings as errors. Use it in CI if you add
+CI later.
+
+The full pre-publish checklist is in
+[`docs/QA_CHECKLIST.md`](docs/QA_CHECKLIST.md). Run through it
+before making the repo public, posting the walkthrough video, or
+sending outreach.
+
+## Consulting / audit offer
+
+This prototype is the proof artifact for a fixed-scope consulting
+offer: a redacted HL7/Mirth triage audit for healthcare integration
+teams.
+
+The full offer is in
+[`docs/OFFER_SHEET.md`](docs/OFFER_SHEET.md). In short:
+
+- You send a handful of redacted HL7 messages and Mirth log
+  excerpts. (PHI removed by you, with a redaction checklist I
+  provide.)
+- I run the audit using the workflow in this repo.
+- You get a triage workflow review, a root-cause taxonomy of your
+  top failure classes, a remediation playbook outline, a
+  human-review checklist, and a 45-minute walkthrough call.
+- Five to seven business days, fixed fee.
+
+I never receive PHI. I do not touch your production systems. The
+deliverable is a workflow artifact your team owns.
+
+## Roadmap
+
+Near term:
+
+- [ ] Tighten prompts with more failure-class coverage.
+- [ ] Add a small per-hypothesis confidence calibration pass.
+- [ ] Add unit tests for the parser and the clustering step.
+- [ ] Add example output transcripts in `samples/transcripts/`.
+
+Medium term:
+
+- [ ] Optional second-provider fallback so the prototype isn't
+      single-provider-locked.
+- [ ] More sample failure classes (ADT mismatches, ACK timeouts,
+      transformer errors).
+- [ ] A redaction-helper script for buyers to use on their own
+      samples before sending.
+
+Explicitly **not** on the roadmap:
+
+- Full SaaS deployment.
+- Auto-applying fixes to real interfaces.
+- Anything that processes real PHI.
+- Compliance certification.
+
+## Repository layout
+
+```
+mirth-ai-triage/
+├── README.md                       this file
+├── requirements.txt                Python dependencies
+├── .env.example                    environment-variable template
+├── mvp_demo/
+│   └── main.py                     demo entry point
+├── prompts/
+│   ├── hl7_triage_prompt.txt       prompt template for HL7 triage
+│   └── mirth_analyzer_prompt.txt   prompt template for log analysis
+├── samples/
+│   ├── README.md                   synthetic-only policy reminder
+│   ├── broken_oru.hl7              synthetic HL7 with intentional defects
+│   └── mirth_error_sample.log      synthetic Mirth-style error log
+├── scripts/
+│   └── check_public_safety.py     pre-publish safety scanner
+├── docs/
+│   ├── OFFER_SHEET.md              consulting/audit offer sheet
+│   ├── SAFETY_MODEL.md             human-in-the-loop safety model
+│   ├── LOOM_SCRIPT.md              walkthrough video script
+│   ├── OUTREACH_MESSAGES.md        outreach message templates
+│   ├── QA_CHECKLIST.md             pre-publish review checklist
+│   └── demo_data_policy.md         synthetic-data-only policy
+└── web/
+    └── index.html                  static landing page (optional)
 ```
 
-**Then open browser to:**
+## Contact
 
-```
-http://localhost:8001
-```
+For audit inquiries: **your_email_here@example.com** (replace before
+publishing).
 
-\---
+## License
 
-## Demo Script (3 minutes for Loom)
-
-### 0:00–0:15 — Setup
-
-* Open http://localhost:8001
-* "This is Mirth AI Triage Copilot. It cuts HL7 interface troubleshooting from hours to minutes."
-
-### 0:15–1:00 — HL7 Triage
-
-* Click "Load broken ORU sample"
-* Click "Analyze Message"
-* Point out: severity score, missing OBX segment detected, exact fix shown
-* "This would normally take an integration engineer 30-90 minutes to diagnose manually."
-
-### 1:00–2:00 — Mirth Analyzer
-
-* Switch to Mirth Analyzer tab
-* Click "Load sample error log"
-* Click "Analyze Error"
-* Point out: channel name identified, line 47 pinpointed, JavaScript fix shown copy-paste ready
-* "847 messages in the error queue. This tells you exactly what broke and exactly how to fix it."
-
-### 2:00–2:45 — Batch Clustering
-
-* Switch to Batch Clustering tab
-* Click "Load sample batch"
-* Click "Cluster \& Analyze"
-* Point out: failure patterns grouped, most common root cause surfaced
-* "Instead of reviewing 500 individual errors, you see the top 3 root causes in one view."
-
-### 2:45–3:00 — Close
-
-* "I can run a free triage on one real broken feed. Send me a log. This just saved your team 40 hours."
-
-\---
-
-## Outreach Message
-
-> "I built a tool that turns broken HL7 messages and Mirth Connect errors into root-cause triage in under 2 minutes. Looking for one healthcare integration team willing to test it on a redacted sample HL7 message or error log. Send one redacted sample and I'll return a clean triage summary at no charge."
-
-\---
-
-## Target Titles on LinkedIn
-
-* Director of Interoperability
-* Integration Engineering Manager
-* VP of Implementations
-* Head of Professional Services
-* Principal Integration Architect
-
-## Target Companies
-
-* Healthcare SaaS vendors 50-500 employees
-* Digital health startups Series A/B with hospital integrations
-* Lab vendors, radiology vendors, RCM companies
-* Any company still on Mirth 3.x evaluating the 4.6 licensing change
-
-\---
-
-## Safety Notes
-
-* Never auto-apply suggested fixes. Always require human review and sign-off.
-* Redact all PHI from demo screenshots and Loom recordings.
-* This tool is for research and triage assistance only, not production automation.
-
+No license is granted by default. If you want to use, fork, or
+distribute any part of this repository, contact the author first.

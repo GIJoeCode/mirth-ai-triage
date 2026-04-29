@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -512,7 +512,7 @@
       <div class="batch-messages" id="batch-messages">
         <div class="batch-msg-row">
           <textarea placeholder="Paste HL7 message 1..."></textarea>
-          <button class="remove-btn" onclick="removeBatchMsg(this)">×</button>
+          <button class="remove-btn" onclick="removeBatchMsg(this)">Ã—</button>
         </div>
       </div>
       <button class="batch-add-btn" onclick="addBatchMsg()">+ Add another message</button>
@@ -537,12 +537,12 @@ const API_BASE = "http://localhost:8001";
 // Sample data
 const SAMPLES = {
   "hl7-broken": `MSH|^~\\&|LAB_SYSTEM|GENERAL_HOSPITAL|EHR_SYSTEM|RECEIVING_APP|20260417083000||ORU^R01|MSG20260417001|P|2.4|||NE|NE
-PID|1||123456789^^^HOSPITAL^MR||DOE^JOHN^A||19800115|M|||123 MAIN ST^^SPRINGFIELD^IL^62701||555-867-5309|||M||987654321^^^HOSPITAL^AN
+PID|1||DEMO_MRN_001^^^DEMO_FACILITY^MR||SYNTHETIC^DEMO^A||19000101|U|||123 DEMO ST^^DEMO CITY^ZZ^00000||555-0101|||U||DEMO_ACCOUNT_001^^^DEMO_FACILITY^AN
 ORC|RE|ORD20260417001|LAB20260417001||CM||||20260417080000|||DR_SMITH^SMITH^JAMES
 OBR|1|ORD20260417001|LAB20260417001|85025^COMPLETE BLOOD COUNT^LN|||20260417080000|||||||||DR_SMITH^SMITH^JAMES||||||||F`,
 
   "hl7-obx": `MSH|^~\\&|LAB_SYSTEM|GENERAL_HOSPITAL|EHR_SYSTEM|RECEIVING_APP|20260417083000||ORU^R01|MSG20260417002|P|2.4|||NE|NE
-PID|1||234567890^^^HOSPITAL^MR||SMITH^JANE^B||19750322|F|||456 OAK AVE^^CHICAGO^IL^60601||555-234-5678|||M||876543210^^^HOSPITAL^AN
+PID|1||DEMO_MRN_002^^^DEMO_FACILITY^MR||SYNTHETIC^DEMO^B||19000102|U|||456 DEMO AVE^^DEMO CITY^ZZ^00000||555-0102|||U||DEMO_ACCOUNT_002^^^DEMO_FACILITY^AN
 ORC|RE|ORD20260417002|LAB20260417002||CM||||20260417080000|||DR_JONES^JONES^SARAH
 OBR|1|ORD20260417002|LAB20260417002|2093-3^CHOLESTEROL^LN|||20260417080000|||||||||DR_JONES^JONES^SARAH||||||||F
 OBX|1||^^||185|mg/dL|<200||||F|||20260417082000`,
@@ -607,12 +607,12 @@ function getSeverityClass(score) {
 }
 
 function getSeverityLabel(score) {
-  if (score <= 3) return `Score ${score}/10 — Low`;
-  if (score <= 6) return `Score ${score}/10 — Medium`;
-  return `Score ${score}/10 — High`;
+  if (score <= 3) return `Score ${score}/10 â€” Low`;
+  if (score <= 6) return `Score ${score}/10 â€” Medium`;
+  return `Score ${score}/10 â€” High`;
 }
 
-// ── HL7 Analysis ──────────────────────────────────────────────────────────
+// â”€â”€ HL7 Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function analyzeHL7() {
   const content = document.getElementById('hl7-input').value.trim();
@@ -653,8 +653,8 @@ function renderHL7Result(data) {
         <span class="issue-type-badge">${iss.type || 'issue'}</span>
         <span class="issue-field">${iss.field || iss.segment || ''}</span>
         <span class="issue-desc">${iss.description || ''}</span>
-        ${iss.hipaa_sensitive ? '<span class="hipaa-badge">⚠ HIPAA</span>' : ''}
-        <span class="issue-expand" id="hl7-iss-${i}-arrow">▼</span>
+        ${iss.hipaa_sensitive ? '<span class="hipaa-badge">âš  HIPAA</span>' : ''}
+        <span class="issue-expand" id="hl7-iss-${i}-arrow">â–¼</span>
       </div>
       <div class="issue-body" id="hl7-iss-${i}">
         <div class="detail-row">
@@ -673,16 +673,16 @@ function renderHL7Result(data) {
 
   el.innerHTML = `
     <div class="result-header">
-      <span class="result-title">HL7 Triage Report — ${data.message_type || 'Unknown type'} — ${issues.length} issue${issues.length !== 1 ? 's' : ''} found</span>
+      <span class="result-title">HL7 Triage Report â€” ${data.message_type || 'Unknown type'} â€” ${issues.length} issue${issues.length !== 1 ? 's' : ''} found</span>
       <span class="severity-badge ${getSeverityClass(score)}">${getSeverityLabel(score)}</span>
     </div>
     <div class="result-body">
       <div class="summary-text">${data.summary || ''}</div>
-      <div class="issues-list">${issueHTML || '<p style="color:#8b949e;font-size:13px;">No issues detected — message appears valid.</p>'}</div>
+      <div class="issues-list">${issueHTML || '<p style="color:#8b949e;font-size:13px;">No issues detected â€” message appears valid.</p>'}</div>
       ${fixes.hl7_patch || fixes.mirth_js ? `
         <div class="fix-section">
           <div class="fix-title">
-            ✓ Suggested Fixes
+            âœ“ Suggested Fixes
             <button class="copy-btn" onclick="copyFix('hl7-fix-code')">Copy</button>
           </div>
           ${fixes.hl7_patch ? `<div class="detail-label" style="margin-bottom:4px;">HL7 Patch</div><div class="code-block" id="hl7-fix-code">${escHtml(fixes.hl7_patch)}</div>` : ''}
@@ -699,7 +699,7 @@ function renderHL7Result(data) {
   el.classList.add('visible');
 }
 
-// ── Mirth Analysis ────────────────────────────────────────────────────────
+// â”€â”€ Mirth Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function analyzeMirth() {
   const content = document.getElementById('mirth-input').value.trim();
@@ -750,12 +750,12 @@ function renderMirthResult(data) {
 
   el.innerHTML = `
     <div class="result-header">
-      <span class="result-title">Mirth Triage — ${data.channel_name || 'Unknown channel'} — Est. ${data.estimated_fix_minutes || '?'} min fix</span>
+      <span class="result-title">Mirth Triage â€” ${data.channel_name || 'Unknown channel'} â€” Est. ${data.estimated_fix_minutes || '?'} min fix</span>
       <span class="severity-badge ${getSeverityClass(score)}">${getSeverityLabel(score)}</span>
     </div>
     <div class="result-body">
       <div class="summary-text">${data.summary || ''}</div>
-      ${data.messages_affected > 0 ? `<p style="font-size:13px;color:#e3b341;margin-bottom:12px;">⚠ ${data.messages_affected} messages currently in error queue</p>` : ''}
+      ${data.messages_affected > 0 ? `<p style="font-size:13px;color:#e3b341;margin-bottom:12px;">âš  ${data.messages_affected} messages currently in error queue</p>` : ''}
 
       <div class="detail-row" style="margin-bottom:12px;">
         <span class="detail-label">Root Cause</span>
@@ -768,7 +768,7 @@ function renderMirthResult(data) {
       ${fix.fixed_code ? `
         <div class="fix-section">
           <div class="fix-title">
-            ✓ JavaScript Fix — paste into ${fix.transformer_name || 'transformer'} step ${fix.step || ''}
+            âœ“ JavaScript Fix â€” paste into ${fix.transformer_name || 'transformer'} step ${fix.step || ''}
             <button class="copy-btn" onclick="copyText(${JSON.stringify(fix.fixed_code)})">Copy</button>
           </div>
           ${fix.original_code ? `<div class="detail-label" style="margin-bottom:4px;">Original (broken)</div><div class="code-block" style="border-color:#da3633;">${escHtml(fix.original_code)}</div>` : ''}
@@ -795,13 +795,13 @@ function renderMirthResult(data) {
   el.classList.add('visible');
 }
 
-// ── Batch Analysis ────────────────────────────────────────────────────────
+// â”€â”€ Batch Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function addBatchMsg() {
   const container = document.getElementById('batch-messages');
   const row = document.createElement('div');
   row.className = 'batch-msg-row';
-  row.innerHTML = `<textarea placeholder="Paste HL7 message..."></textarea><button class="remove-btn" onclick="removeBatchMsg(this)">×</button>`;
+  row.innerHTML = `<textarea placeholder="Paste HL7 message..."></textarea><button class="remove-btn" onclick="removeBatchMsg(this)">Ã—</button>`;
   container.appendChild(row);
 }
 
@@ -816,7 +816,7 @@ function loadBatchSamples() {
   [SAMPLES['hl7-broken'], SAMPLES['hl7-obx'], SAMPLES['hl7-broken'], SAMPLES['hl7-obx'], SAMPLES['hl7-broken']].forEach(s => {
     const row = document.createElement('div');
     row.className = 'batch-msg-row';
-    row.innerHTML = `<textarea></textarea><button class="remove-btn" onclick="removeBatchMsg(this)">×</button>`;
+    row.innerHTML = `<textarea></textarea><button class="remove-btn" onclick="removeBatchMsg(this)">Ã—</button>`;
     container.appendChild(row);
     row.querySelector('textarea').value = s;
   });
@@ -874,7 +874,7 @@ function renderBatchResult(data) {
 
   el.innerHTML = `
     <div class="result-header">
-      <span class="result-title">Batch Analysis — ${data.total_messages} messages — ${data.cluster_count} failure pattern${data.cluster_count !== 1 ? 's' : ''}</span>
+      <span class="result-title">Batch Analysis â€” ${data.total_messages} messages â€” ${data.cluster_count} failure pattern${data.cluster_count !== 1 ? 's' : ''}</span>
       <span class="severity-badge severity-medium">${data.total_issues_found} total issues</span>
     </div>
     <div class="result-body">
@@ -890,7 +890,7 @@ function renderBatchResult(data) {
   el.classList.add('visible');
 }
 
-// ── UI helpers ────────────────────────────────────────────────────────────
+// â”€â”€ UI helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function setLoading(type, loading) {
   document.getElementById(`${type}-btn`).disabled = loading;
@@ -907,7 +907,7 @@ function toggleIssue(id) {
   const body = document.getElementById(id);
   const arrow = document.getElementById(`${id}-arrow`);
   const open = body.classList.toggle('open');
-  if (arrow) arrow.textContent = open ? '▲' : '▼';
+  if (arrow) arrow.textContent = open ? 'â–²' : 'â–¼';
 }
 
 function toggleJSON(id) {
@@ -934,3 +934,4 @@ function escHtml(str) {
 </script>
 </body>
 </html>
+

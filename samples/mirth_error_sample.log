@@ -1,25 +1,49 @@
-[2026-04-17 08:23:14,445] ERROR (Thread-42): Error occurred in channel: LAB_RESULTS_INBOUND (Channel ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890)
-com.mirth.connect.server.MirthJavascriptTransformerException: Error running transformer: Destination 1 - EHR_WRITER
-  Message: Transformer error at line 47
-  Caused by: org.mozilla.javascript.EcmaError: TypeError: Cannot read property "0" from undefined (lab_results_transformer.js#47)
-	at org.mozilla.javascript.Interpreter.interpretLoop(Interpreter.java:1247)
-	at org.mozilla.javascript.Interpreter.interpret(Interpreter.java:813)
-	at org.mozilla.javascript.InterpretedFunction.call(InterpretedFunction.java:164)
-	at com.mirth.connect.server.transformers.JavaScriptTransformer.doTransform(JavaScriptTransformer.java:203)
+# SYNTHETIC_DEMO_DATA — synthetic Mirth-Connect-style error log excerpt.
+# Used to exercise the triage workflow's log clustering and root-cause
+# hypothesis steps. All channel names, hostnames, and identifiers below
+# are clearly fictional.
 
-Script context:
---- lab_results_transformer.js ---
-41: var patientId = msg['PID']['PID.3']['PID.3.1'].toString();
-42: var lastName = msg['PID']['PID.5']['PID.5.1'].toString();
-43: var firstName = msg['PID']['PID.5']['PID.5.2'].toString();
-44: var dob = msg['PID']['PID.7']['PID.7.1'].toString();
-45:
-46: // Get OBX result value
-47: var resultValue = msg['OBX']['OBX.5']['OBX.5.1'].toString();
-48: var resultUnits = msg['OBX']['OBX.6']['OBX.6.1'].toString();
-49: var resultStatus = msg['OBX']['OBX.11'].toString();
----
+2026-01-01 12:00:00,123 ERROR [DEMO_CHANNEL_INBOUND_ORU] [demo.local] Source: TCP Listener
+  com.mirth.connect.connectors.tcp.TcpReceiverException: Connection reset by peer
+        at demo.synthetic.handler.TcpReceiver.read(TcpReceiver.java:142)
+        at demo.synthetic.handler.TcpReceiver.process(TcpReceiver.java:88)
+  Message ID: DEMO-MSG-000001
+  Channel:    DEMO_CHANNEL_INBOUND_ORU
+  Connector:  Source
 
-[2026-04-17 08:23:14,446] ERROR: Message ID 20260417-8823-LAB moved to Error queue
-[2026-04-17 08:23:14,447] INFO: Channel LAB_RESULTS_INBOUND has 847 messages in Error queue
-[2026-04-17 08:23:14,448] WARN: Destination EHR_WRITER has been paused due to consecutive errors (threshold: 5)
+2026-01-01 12:00:04,557 WARN  [DEMO_CHANNEL_INBOUND_ORU] [demo.local] Transformer
+  Validation failed: MSH-10 (Message Control ID) is required and was empty.
+  Message ID: DEMO-MSG-000001
+  Action:     Sent to dead-letter queue (synthetic)
+
+2026-01-01 12:01:11,002 ERROR [DEMO_CHANNEL_OUTBOUND_ADT] [demo.local] Destination 1: Database Writer
+  java.sql.SQLException: ORA-12541: TNS:no listener (synthetic)
+        at demo.synthetic.db.Writer.connect(Writer.java:55)
+  Message ID: DEMO-MSG-000002
+  Channel:    DEMO_CHANNEL_OUTBOUND_ADT
+  Connector:  Destination 1
+  Retry:      3 of 5
+
+2026-01-01 12:01:42,889 ERROR [DEMO_CHANNEL_OUTBOUND_ADT] [demo.local] Destination 1: Database Writer
+  java.sql.SQLException: ORA-12541: TNS:no listener (synthetic)
+  Message ID: DEMO-MSG-000003
+  Channel:    DEMO_CHANNEL_OUTBOUND_ADT
+  Connector:  Destination 1
+  Retry:      3 of 5
+
+2026-01-01 12:02:15,004 ERROR [DEMO_CHANNEL_OUTBOUND_ADT] [demo.local] Destination 1: Database Writer
+  java.sql.SQLException: ORA-12541: TNS:no listener (synthetic)
+  Message ID: DEMO-MSG-000004
+  Channel:    DEMO_CHANNEL_OUTBOUND_ADT
+  Connector:  Destination 1
+  Retry:      3 of 5
+
+2026-01-01 12:03:30,777 ERROR [DEMO_CHANNEL_INBOUND_ORU] [demo.local] Transformer
+  HL7v2 parse error at line 5, segment OBX-5: unescaped pipe character in field value.
+  Message ID: DEMO-MSG-000005
+  Channel:    DEMO_CHANNEL_INBOUND_ORU
+  Connector:  Transformer
+  Action:     Sent to dead-letter queue (synthetic)
+
+2026-01-01 12:05:01,221 INFO  [DEMO_CHANNEL_INBOUND_ORU] [demo.local] Source
+  Channel deployed. 3 errors observed in last 5 minutes (synthetic).
